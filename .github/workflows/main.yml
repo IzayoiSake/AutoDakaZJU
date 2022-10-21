@@ -20,17 +20,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
         uses: actions/checkout@v2
-        
-      - name: Sync with upstream
-        if: github.repository != 'Friedrich-M/AutoClock'
-        continue-on-error: true
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.2
-        with:
-          upstream_sync_repo: Friedrich-M/AutoClock
-          upstream_sync_branch: main
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          upstream_pull_args: '-s recursive -Xtheirs'
 
       # Runs a single command using the runners shell
       - name: 'Set up Python'
