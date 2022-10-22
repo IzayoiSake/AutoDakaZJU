@@ -138,6 +138,7 @@ class AutoDaka:
                 print("位置信息已提交")
                 print(area_element.get_attribute("value"))
             else:
+                print(area_element.get_attribute("value"))
                 raise Exception("位置不正确")
         except Exception as error:
             print("地理位置信息填写异常\n", error)
