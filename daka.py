@@ -133,7 +133,10 @@ class AutoDaka:
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
             area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
             area_element.click()
+            time.sleep(5)
             # 检查位置是否正确
+            area_element=driver.find_element(by=By.NAME,value="area")
+            area_element=area_element.find_element(by=By.TAG_NAME, value="input")
             print(area_element.get_attribute("value"))
             if area_element.get_attribute("value") == "浙江省 杭州市 西湖区":
                 print("位置信息已提交")
