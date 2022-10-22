@@ -1,9 +1,10 @@
+from ast import While
 from lib2to3.pgen2 import driver
 from opcode import HAVE_ARGUMENT
+from threading import Timer
 from turtle import end_fill
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from chaojiying import Chaojiying_Client
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
@@ -11,6 +12,7 @@ import datetime
 import time
 import os
 from DingRobot import dingpush
+from chaojiying import Chaojiying_Client
 
 # 使用代理的方法 ，可以直接windows使用代理，不用这么麻烦
 # browserOptions = webdriver.ChromeOptions()
@@ -133,14 +135,24 @@ class AutoDaka:
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
             area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
             area_element.click()
-            time.sleep(5)
             # 检查位置是否正确
             area_element=driver.find_element(by=By.NAME,value="area")
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
-            print(area_element.get_attribute("value"))
-            if area_element.get_attribute("value") == "浙江省 杭州市 西湖区":
-                print("位置信息已提交")
-            else:
+            # 等待位置信息加载
+            try:
+                t=0
+                while area_element.get_attribute("value") == "" and t<10:
+                    time.sleep(0.5)
+                    t=t+0.5
+                if area_element.get_attribute("value") == "浙江省 杭州市 西湖区":
+                    print("位置信息已提交")
+                elif area_element.get_attribute("value") == '':
+                    raise Exception("位置信息加载超时")
+                else:
+                    raise Exception("位置信息错误")
+                print(area_element.get_attribute("value"))
+            except Exception:
+                print(area_element.get_attribute("value"))
                 raise Exception("位置不正确")
         except Exception as error:
             print("地理位置信息填写异常\n", error)
