@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import datetime
 import time
 import os
@@ -44,12 +45,32 @@ class AutoDaka:
         chrome_options.add_argument('--headless')
 
         driver = webdriver.Chrome(options=chrome_options) 
-        try:
-            driver.get(url)
-        except WebDriverException:
-            print("page down")
-        driver.maximize_window()
         
+        # 尝试5次打开网页
+        for i in range(5):
+            # 限制页面加载时间
+            driver.set_page_load_timeout(10+i*5)
+            # 限制脚本运行时间
+            driver.set_script_timeout(10+i*5)
+            try:
+                TimeStart = time.time()
+                driver.get(url)
+                break
+            except WebDriverException:
+                TimeEnd=time.time()
+                # 如果超时10s
+                if TimeEnd-TimeStart > 10:
+                    print("打开网页超时，正在重试...""第"+str(i+1)+"次")
+                    continue
+                else:
+                    print("页面加载失败")
+                    break
+        # 5次都打不开，就抛出异常
+        else:
+            # 发送钉钉通知
+            dingpush(self.DD_BOT_TOKEN, self.DD_BOT_SECRET, "浙大统一身份认证平台加载超时")
+            print("页面加载超时")
+            raise Exception
         return driver
 
     def login(self, driver):
@@ -62,20 +83,23 @@ class AutoDaka:
         password_input = driver.find_element(by=By.ID, value="password")
         login_button = driver.find_element(by=By.ID, value="dl")
 
-        print("登录到浙大统一身份认证平台...")
-
+        print("等待登录...")
+        # 等待用户密码输入框加载出来
         try:
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(username_input))
             username_input.send_keys(self.username)
             password_input.send_keys(self.password)
-            print("已登录到浙大统一身份认证平台")
+            print("开始登录到浙大统一身份认证平台")
+            # 等待登录按钮可点击
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
             login_button.click()
-            time.sleep(1)
         except Exception as err:
             print(str(err))
             raise Exception
         
 
     def daka(self, driver):
+        print("已登录到浙大统一身份认证平台")
         print("打卡任务启动...")
         print("正在获得虚拟地理位置信息...")
         
@@ -252,57 +276,8 @@ class AutoDaka:
         self.daka(driver)
         driver.close()
         print("打卡完成")
-        
-    def run2(self):
-        driver= self.init_driver()
-        self.login(driver)
-        #inSchool=driver.find_element(by=By.NAME,value="sfzx")
-        #Test=inSchool.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-        #Test[1].click()
-        driver.execute_cdp_cmd(
-            "Browser.grantPermissions",  # 授权地理位置信息
-            {
-                "origin": self.url,
-                "permissions": ["geolocation"]
-            },
-        )
 
-        driver.execute_cdp_cmd(
-            "Emulation.setGeolocationOverride",  # 虚拟位置
-            {
-                "latitude": self.latitude,
-                "longitude": self.longitude,
-                "accuracy": 50,
-            },
-        )
 
-        time.sleep(2)  # 等待位置信息
-        inSchool=driver.find_element(by=By.NAME,value="sfzx")
-        inSchoolOption=inSchool.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-        inSchoolYes=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(inSchoolOption[0]))
-        inSchoolYes.click()
-        Campus=driver.find_element(by=By.NAME,value="campus")
-        CampusOption=Campus.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-        CampusYuquan=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(CampusOption[1]))
-        CampusYuquan.click()
-        internship=driver.find_element(by=By.NAME,value="internship")
-        internshipOption=internship.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-        internshipNo=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(internshipOption[2]))
-        internshipNo.click()
-        GeoLocation=driver.find_element(by=By.NAME,value="area")
-        GeoLocationInput=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(GeoLocation.find_element(by=By.TAG_NAME, value="input")))
-        GeoLocationInput.click()
-        HealthCode=driver.find_element(by=By.NAME,value="sqhzjkkys")
-        HealthCodeOption=HealthCode.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-        GreenCode=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(HealthCodeOption[0]))
-        GreenCode.click()
-        Commit=driver.find_element(by=By.NAME,value="sfqrxxss")
-        CommitYes=Commit.find_element(by=By.TAG_NAME, value="div").find_element(by=By.TAG_NAME, value="div")
-        CommitYes.click()
-
-        
-        print("打卡完成")
-        
 
 if __name__ == "__main__":
     
