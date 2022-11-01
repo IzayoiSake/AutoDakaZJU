@@ -49,17 +49,17 @@ class AutoDaka:
         # 尝试5次打开网页
         for i in range(5):
             # 限制页面加载时间
-            driver.set_page_load_timeout(10+i*5)
+            driver.set_page_load_timeout(30+i*5)
             # 限制脚本运行时间
-            driver.set_script_timeout(10+i*5)
+            # driver.set_script_timeout(30+i*5)
             try:
                 TimeStart = time.time()
                 driver.get(url)
                 break
             except WebDriverException:
                 TimeEnd=time.time()
-                # 如果超时10s
-                if TimeEnd-TimeStart > 10:
+                # 如果超时
+                if 1:
                     print("打开网页超时，正在重试...""第"+str(i+1)+"次")
                     continue
                 else:
@@ -70,7 +70,8 @@ class AutoDaka:
             # 发送钉钉通知
             dingpush(self.DD_BOT_TOKEN, self.DD_BOT_SECRET, "浙大统一身份认证平台加载超时")
             print("页面加载超时")
-            raise Exception
+            # 结束全部程序
+            exit()
         return driver
 
     def login(self, driver):
