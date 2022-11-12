@@ -94,6 +94,7 @@ class AutoDaka:
             # 等待登录按钮可点击
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
             login_button.click()
+            time.sleep(1)
         except Exception as err:
             print(str(err))
             raise Exception
