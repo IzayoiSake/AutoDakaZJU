@@ -23,12 +23,13 @@ from chaojiying import Chaojiying_Client
 # 自动打卡
 class AutoDaka:
     # 初始化
-    def __init__(self, url, username, password, latitude, longitude):
+    def __init__(self, url, username, password, latitude, longitude, cookie):
         self.url = url
         self.username = username  # 用户名(学号)
         self.password = password  # 密码 
         self.latitude = latitude  # 纬度 默认是杭州市西湖区，可以在main函数里进行修改
         self.longitude = longitude  # 经度
+        self.cookie = cookie  # cookie
         self.DD_BOT_TOKEN = os.getenv("DD_BOT_TOKEN") # 钉钉机器人token
         self.DD_BOT_SECRET=os.getenv("DD_BOT_SECRET") # 钉钉机器人secret
 
@@ -46,6 +47,12 @@ class AutoDaka:
 
         driver = webdriver.Chrome(options=chrome_options) 
         
+        return driver
+
+    def login(self, driver):
+        print("\n[Time] %s" %
+              datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print("🚌 打卡任务启动")
         # 尝试5次打开网页
         for i in range(5):
             # 限制页面加载时间
@@ -53,52 +60,65 @@ class AutoDaka:
             # 限制脚本运行时间
             # driver.set_script_timeout(30+i*5)
             try:
-                TimeStart = time.time()
-                driver.get(url)
+                driver.get(self.url)
+                print("打开浙大统一身份认证平台成功")
                 break
             except WebDriverException:
-                TimeEnd=time.time()
                 # 如果超时
-                if 1:
-                    print("打开网页超时，正在重试...""第"+str(i+1)+"次")
-                    continue
-                else:
-                    print("页面加载失败")
-                    break
+                print("打开网页超时，正在重试...""第"+str(i+1)+"次")
+                continue
         # 5次都打不开，就抛出异常
         else:
             # 发送钉钉通知
-            dingpush(self.DD_BOT_TOKEN, self.DD_BOT_SECRET, "浙大统一身份认证平台加载超时")
+            self.Reminder("浙大统一身份认证平台加载超时")
             print("页面加载超时")
             # 结束全部程序
             exit()
-        return driver
-
-    def login(self, driver):
-        print("\n[Time] %s" %
-              datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        print("🚌 打卡任务启动")
-
         # 找到输入框,发送要输入的用户名和密码,模拟登陆
         username_input = driver.find_element(by=By.ID, value="username")
         password_input = driver.find_element(by=By.ID, value="password")
         login_button = driver.find_element(by=By.ID, value="dl")
-
         print("等待登录...")
-        # 等待用户密码输入框加载出来
         try:
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(username_input))
-            username_input.send_keys(self.username)
-            password_input.send_keys(self.password)
-            print("开始登录到浙大统一身份认证平台")
-            # 等待登录按钮可点击
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
-            login_button.click()
-            time.sleep(1)
-        except Exception as err:
-            print(str(err))
+            errorMessage="未知"
+            # 使用cookie登录
+            if self.cookie != "":
+                print("使用cookie登录")
+                self.Reminder("使用cookie登录")
+                driver.delete_all_cookies()
+                for line in self.cookie.split(';'):
+                    name, value = line.strip().split('=', 1)
+                    driver.add_cookie({'name': name, 'value': value})
+                try:
+                    driver.get(self.url)
+                    print("登录成功")
+                    print("cookie登录成功")
+                except Exception:
+                    errorMessage="cookie登录失败"
+                    raise Exception
+            elif self.username != "" and self.password != "":
+                print("使用账号密码登录")
+                self.Reminder("使用账号密码登录")
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable(username_input))
+                username_input.send_keys(self.username)
+                password_input.send_keys(self.password)
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
+                try:
+                    login_button.click()
+                    print("账号密码登录成功")
+                except Exception:
+                    errorMessage="账号密码登录失败-点击登录按钮失败"
+                    raise Exception
+            else:
+                print("请填写cookie或账号密码")
+                self.Reminder("您没有填写cookie或账号密码")
+                raise Exception
+        except Exception:
+            print("登录失败"+errorMessage)
+            # 发送钉钉通知
+            self.Reminder("登录失败"+errorMessage)
+            # 报错
             raise Exception
-        
 
     def daka(self, driver):
         print("已登录到浙大统一身份认证平台")
@@ -292,7 +312,8 @@ if __name__ == "__main__":
     url = "https://healthreport.zju.edu.cn/ncov/wap/default/index"
     account = os.getenv("account")#os.getenv("account")
     password = os.getenv("password")#os.getenv("password")
+    cookie = os.getenv("cookie")#os.getenv("cookie")
     latitude = 30.27  # 虚拟位置纬度
     longitude = 120.13  # 经度
-    daka = AutoDaka(url, account, password, latitude, longitude)
+    daka = AutoDaka(url, account, password, latitude, longitude, cookie)
     daka.run()
