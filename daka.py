@@ -85,6 +85,7 @@ class AutoDaka:
             if self.cookie != "":
                 print("使用cookie登录")
                 self.Reminder("使用cookie登录")
+                self.Reminder(self.cookie)
                 driver.delete_all_cookies()
                 for line in self.cookie.split(';'):
                     name, value = line.strip().split('=', 1)
