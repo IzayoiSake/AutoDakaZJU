@@ -55,10 +55,6 @@ class AutoDaka:
         print("🚌 打卡任务启动")
         # 尝试5次打开网页
         for i in range(5):
-            # 限制页面加载时间
-            driver.set_page_load_timeout(30+i*5)
-            # 限制脚本运行时间
-            # driver.set_script_timeout(30+i*5)
             try:
                 driver.get(self.url)
                 print("打开浙大统一身份认证平台成功")
@@ -103,17 +99,7 @@ class AutoDaka:
                 username_input.send_keys(self.username)
                 password_input.send_keys(self.password)
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
-                try:
-                    # 更改超时时间
-                    driver.set_page_load_timeout(240)
-                    login_button.click()
-                    print("账号密码登录成功")
-                    # 获取cookie
-                    cookies = driver.get_cookies()
-                    self.Reminder(cookies)
-                except Exception:
-                    errorMessage="账号密码登录失败-点击登录按钮失败"
-                    raise Exception
+                login_button.click()
             else:
                 print("请填写cookie或账号密码")
                 self.Reminder("您没有填写cookie或账号密码")
