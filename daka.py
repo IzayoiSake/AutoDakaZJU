@@ -82,7 +82,7 @@ class AutoDaka:
         try:
             errorMessage="未知"
             # 使用cookie登录
-            if self.cookie != "":
+            if False and self.cookie != "":
                 print("使用cookie登录")
                 self.Reminder("使用cookie登录")
                 driver.delete_all_cookies()
@@ -104,8 +104,13 @@ class AutoDaka:
                 password_input.send_keys(self.password)
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
                 try:
+                    # 更改超时时间
+                    driver.set_page_load_timeout(240)
                     login_button.click()
                     print("账号密码登录成功")
+                    # 获取cookie
+                    cookies = driver.get_cookies()
+                    self.Reminder(cookies)
                 except Exception:
                     errorMessage="账号密码登录失败-点击登录按钮失败"
                     raise Exception
