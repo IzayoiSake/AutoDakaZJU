@@ -1,19 +1,13 @@
-from ast import While
-from lib2to3.pgen2 import driver
-from opcode import HAVE_ARGUMENT
-from threading import Timer
-from turtle import end_fill
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import datetime
 import time
 import os
 from DingRobot import dingpush
-from chaojiying import Chaojiying_Client
+# from chaojiying import Chaojiying_Client
 
 # 使用代理的方法 ，可以直接windows使用代理，不用这么麻烦
 # browserOptions = webdriver.ChromeOptions()
@@ -52,28 +46,25 @@ class AutoDaka:
     def login(self, driver):
         print("\n[Time] %s" %
               datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        print("🚌 打卡任务启动")
-        # 尝试5次打开网页
-        for i in range(5):
-            try:
-                driver.get(self.url)
-                print("打开浙大统一身份认证平台成功")
-                break
-            except WebDriverException:
-                # 如果超时
-                print("打开网页超时，正在重试...""第"+str(i+1)+"次")
-                continue
-        # 5次都打不开，就抛出异常
-        else:
-            # 发送钉钉通知
-            self.Reminder("浙大统一身份认证平台加载超时")
-            print("页面加载超时")
-            # 结束全部程序
-            exit()
-        # 找到输入框,发送要输入的用户名和密码,模拟登陆
-        username_input = driver.find_element(by=By.ID, value="username")
-        password_input = driver.find_element(by=By.ID, value="password")
-        login_button = driver.find_element(by=By.ID, value="dl")
+        print("打卡任务启动")
+        # # 尝试5次打开网页
+        # for i in range(5):
+        #     try:
+        #         driver.get(self.url)
+        #         print("打开浙大统一身份认证平台成功")
+        #         break
+        #     except WebDriverException:
+        #         # 如果超时
+        #         print("打开网页超时，正在重试...""第"+str(i+1)+"次")
+        #         continue
+        # # 5次都打不开，就抛出异常
+        # else:
+        #     # 发送钉钉通知
+        #     self.Reminder("浙大统一身份认证平台加载超时")
+        #     print("页面加载超时")
+        #     # 结束全部程序
+        #     exit()
+        
         print("等待登录...")
         try:
             errorMessage="未知"
@@ -81,9 +72,10 @@ class AutoDaka:
             if False and self.cookie != "":
                 print("使用cookie登录")
                 self.Reminder("使用cookie登录")
+                driver.get(self.url)
                 driver.delete_all_cookies()
-                for line in self.cookie.split(';'):
-                    name, value = line.strip().split('=', 1)
+                for cookie in self.cookie.split(';'):
+                    name, value = cookie.strip().split('=', 1)
                     driver.add_cookie({'name': name, 'value': value})
                 try:
                     driver.get(self.url)
@@ -93,6 +85,12 @@ class AutoDaka:
                     errorMessage="cookie登录失败"
                     raise Exception
             elif self.username != "" and self.password != "":
+                driver.get(self.url)
+                # 找到输入框,发送要输入的用户名和密码,模拟登陆
+                username_input = driver.find_element(by=By.ID, value="username")
+                password_input = driver.find_element(by=By.ID, value="password")
+                login_button = driver.find_element(by=By.ID, value="dl")
+                
                 print("使用账号密码登录")
                 self.Reminder("使用账号密码登录")
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable(username_input))
@@ -100,6 +98,7 @@ class AutoDaka:
                 password_input.send_keys(self.password)
                 WebDriverWait(driver, 10).until(EC.element_to_be_clickable(login_button))
                 login_button.click()
+                
             else:
                 print("请填写cookie或账号密码")
                 self.Reminder("您没有填写cookie或账号密码")
@@ -256,7 +255,7 @@ class AutoDaka:
                             EC.element_to_be_clickable(submit))
                 submit.click()
                 print("确认提交")
-                self.Reminder("今天的打卡完成了🚌，耶！")
+                self.Reminder("今天的打卡完成了，耶！")
             else:
                 raise Exception("")
         except:
@@ -280,7 +279,6 @@ class AutoDaka:
             ding.SelectAndPush()
         else:
             print("钉钉推送未配置，请自行查看签到结果")
-        print("推送完成！")
         
 
     def run(self):
