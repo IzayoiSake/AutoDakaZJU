@@ -69,16 +69,39 @@ class AutoDaka:
         try:
             errorMessage="未知"
             # 使用cookie登录
-            if False and self.cookie != "":
+            if  self.cookie != "":
                 print("使用cookie登录")
                 self.Reminder("使用cookie登录")
-                driver.get(self.url)
+                # 登录一个404页面,防止页面跳转导致无法添加cookie
+                driver.get(self.url+"1")
                 driver.delete_all_cookies()
+                # 给"healthreport.zju.edu.cn"添加cookie
                 for cookie in self.cookie.split(';'):
-                    name, value = cookie.strip().split('=', 1)
-                    driver.add_cookie({'name': name, 'value': value})
+                    name,value=cookie.strip().split('=',1)
+                    try:
+                        driver.add_cookie({'name':name,'value':value,'domain':'healthreport.zju.edu.cn'})
+                    except:
+                        1
+                cookies = driver.get_cookies()
                 try:
-                    driver.get(self.url)
+                    # 加载时长设为60s
+                    driver.set_page_load_timeout(60)
+                    # 尝试登录5次
+                    for i in range(5):
+                        try:
+                            driver.get(self.url)
+                            print("打开浙大统一身份认证平台成功")
+                            break
+                        except :
+                            # 如果超时
+                            print("打开网页超时，正在重试...""第"+str(i+1)+"次")
+                            continue
+                    # 5次都打不开，就抛出异常
+                    else:
+                        # 发送钉钉通知
+                        self.Reminder("浙大统一身份认证平台加载超时")
+                        print("页面加载超时")
+                        raise Exception
                     print("登录成功")
                     print("cookie登录成功")
                 except Exception:
@@ -170,7 +193,18 @@ class AutoDaka:
             area_element=driver.find_element(by=By.NAME,value="area")
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
             area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
-            area_element.click()
+            # 尝试点击，最大尝试次数为5
+            for i in range(5):
+                try:
+                    area_element.click()
+                    break
+                except:
+                    print("提交位置信息超时，正在重试...""第"+str(i+1)+"次")
+                    continue
+            else:
+                print("提交位置信息超时，重试5次失败")
+                self.Reminder("提交位置信息超时，重试5次失败")
+                raise Exception
             # 检查位置是否正确
             area_element=driver.find_element(by=By.NAME,value="area")
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
@@ -301,7 +335,7 @@ if __name__ == "__main__":
     url = "https://healthreport.zju.edu.cn/ncov/wap/default/index"
     account = os.getenv("account")#os.getenv("account")
     password = os.getenv("password")#os.getenv("password")
-    cookie = os.getenv("cookie")#os.getenv("cookie")
+    cookie = "eai-sess="+os.getenv("cookie")
     latitude = 30.27  # 虚拟位置纬度
     longitude = 120.13  # 经度
     daka = AutoDaka(url, account, password, latitude, longitude, cookie)
