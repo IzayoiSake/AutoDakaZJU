@@ -174,73 +174,73 @@ class AutoDaka:
             print("在校信息填写异常\n", error)
         time.sleep(1)
 
-        # 是否在实习
-        print("实习信息填写中...")
-        try:
-            internship=driver.find_element(by=By.NAME,value="internship")
-            internshipOption=internship.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
-            internshipNo=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(internshipOption[2]))
-            internshipNo.click()
-            print("实习信息已提交")
-        except Exception as error:
-            print("实习信息填写异常\n", error)
-        time.sleep(1)
+        # # 是否在实习
+        # print("实习信息填写中...")
+        # try:
+        #     internship=driver.find_element(by=By.NAME,value="internship")
+        #     internshipOption=internship.find_element(by=By.TAG_NAME, value="div").find_elements(by=By.TAG_NAME, value="div")
+        #     internshipNo=WebDriverWait(driver, 10).until(EC.element_to_be_clickable(internshipOption[2]))
+        #     internshipNo.click()
+        #     print("实习信息已提交")
+        # except Exception as error:
+        #     print("实习信息填写异常\n", error)
+        # time.sleep(1)
 
-        # 位置填写
-        print("位置信息填写中...")
+        # # 位置填写
+        # print("位置信息填写中...")
 
-        try:  # 提交位置信息
-            ElementNotFind=False
-            area_element=driver.find_element(by=By.NAME,value="area")
-            area_element=area_element.find_element(by=By.TAG_NAME, value="input")
-            area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
-        except Exception as error:
-            # 如果是没找到元素，可忽略
-            if "element not interactable" in str(error):
-                print("位置窗口没找到,已忽略")
-                ElementNotFind = True
-            else:
-                print("地理位置信息填写异常\n", error)
-        if not ElementNotFind:
-            try:
-                # 尝试点击，最大尝试次数为5
-                for i in range(5):
-                    try:
-                        area_element.click()
-                        break
-                    except:
-                        print("提交位置信息超时，正在重试...""第"+str(i+1)+"次")
-                        continue
-                else:
-                    print("提交位置信息超时，重试5次失败")
-                    self.Reminder("提交位置信息超时，重试5次失败")
-                    raise Exception
-                # 检查位置是否正确
-                area_element=driver.find_element(by=By.NAME,value="area")
-                area_element=area_element.find_element(by=By.TAG_NAME, value="input")
-                # 等待位置信息加载
-                try:
-                    t=0
-                    while area_element.get_attribute("value") == "" and t<10:
-                        time.sleep(0.5)
-                        t=t+0.5
-                    if area_element.get_attribute("value") == "浙江省 杭州市 西湖区":
-                        print("位置信息已提交")
-                    elif area_element.get_attribute("value") == '':
-                        raise Exception("位置信息加载超时")
-                    else:
-                        raise Exception("位置信息错误")
-                    print(area_element.get_attribute("value"))
-                except Exception:
-                    print(area_element.get_attribute("value"))
-                    raise Exception("位置不正确")
-            except Exception as error:
-                print("地理位置信息填写异常\n", error)
-                # 停止程序
-                raise Exception
-        else:
-               1# 什么都不做
-        time.sleep(3)
+        # try:  # 提交位置信息
+        #     ElementNotFind=False
+        #     area_element=driver.find_element(by=By.NAME,value="area")
+        #     area_element=area_element.find_element(by=By.TAG_NAME, value="input")
+        #     area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
+        # except Exception as error:
+        #     # 如果是没找到元素，可忽略
+        #     if "element not interactable" in str(error):
+        #         print("位置窗口没找到,已忽略")
+        #         ElementNotFind = True
+        #     else:
+        #         print("地理位置信息填写异常\n", error)
+        # if not ElementNotFind:
+        #     try:
+        #         # 尝试点击，最大尝试次数为5
+        #         for i in range(5):
+        #             try:
+        #                 area_element.click()
+        #                 break
+        #             except:
+        #                 print("提交位置信息超时，正在重试...""第"+str(i+1)+"次")
+        #                 continue
+        #         else:
+        #             print("提交位置信息超时，重试5次失败")
+        #             self.Reminder("提交位置信息超时，重试5次失败")
+        #             raise Exception
+        #         # 检查位置是否正确
+        #         area_element=driver.find_element(by=By.NAME,value="area")
+        #         area_element=area_element.find_element(by=By.TAG_NAME, value="input")
+        #         # 等待位置信息加载
+        #         try:
+        #             t=0
+        #             while area_element.get_attribute("value") == "" and t<10:
+        #                 time.sleep(0.5)
+        #                 t=t+0.5
+        #             if area_element.get_attribute("value") == "浙江省 杭州市 西湖区":
+        #                 print("位置信息已提交")
+        #             elif area_element.get_attribute("value") == '':
+        #                 raise Exception("位置信息加载超时")
+        #             else:
+        #                 raise Exception("位置信息错误")
+        #             print(area_element.get_attribute("value"))
+        #         except Exception:
+        #             print(area_element.get_attribute("value"))
+        #             raise Exception("位置不正确")
+        #     except Exception as error:
+        #         print("地理位置信息填写异常\n", error)
+        #         # 停止程序
+        #         raise Exception
+        # else:
+        #        1# 什么都不做
+        # time.sleep(3)
 
         #健康码信息
         print("健康码信息填写中...")
