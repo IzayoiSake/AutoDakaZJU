@@ -190,6 +190,7 @@ class AutoDaka:
         print("位置信息填写中...")
 
         try:  # 提交位置信息
+            ElementNotFind=False
             area_element=driver.find_element(by=By.NAME,value="area")
             area_element=area_element.find_element(by=By.TAG_NAME, value="input")
             area_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(area_element))
